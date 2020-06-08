@@ -8,6 +8,7 @@ const filterOption = document.querySelector('.filter-todo');
 todoButton.addEventListener('click', addTodo);
 todoList.addEventListener('click', deleteCheck);
 filterOption.addEventListener('change', filterTodo);
+document.addEventListener('DOMContentLoaded', initApp);
 
 // Functions
 function addTodo(event) {
@@ -15,12 +16,30 @@ function addTodo(event) {
 
   if (todoInput.value.trim() === '') return;
 
+  const newTodo = {
+    id: uuidv4(),
+    text: todoInput.value,
+    completed: false,
+  };
+
+  // Update UI
+  addTodoUI(newTodo);
+
+  // Save to Local
+  saveLocalTodo(newTodo);
+
+  // Clear Todo Input Value
+  todoInput.value = '';
+}
+
+function addTodoUI(todo) {
   // Todo DIV
   const todoDiv = document.createElement('div');
-  todoDiv.classList.add('todo');
+  todoDiv.className = todo.completed ? 'todo completed' : 'todo';
+  todoDiv.dataset.id = todo.id;
   // Create LI
   const newTodo = document.createElement('li');
-  newTodo.innerText = todoInput.value;
+  newTodo.innerText = todo.text;
   newTodo.classList.add('todo-item');
   todoDiv.appendChild(newTodo);
   // Check Mark Button
@@ -35,26 +54,40 @@ function addTodo(event) {
   todoDiv.appendChild(trashButton);
   // Append To List
   todoList.appendChild(todoDiv);
-  // Clear Todo Input Value
-  todoInput.value = '';
 }
 
 function deleteCheck(e) {
   // Delete Todo
   if (e.target.classList.contains('trash-btn')) {
     const todo = e.target.parentElement;
-    // Animation
-    todo.classList.add('fall');
-    todo.addEventListener('transitionend', () => {
-      todo.remove();
-    });
+    deleteLocalTodo(todo.dataset.id);
+    deleteTodoUI(todo);
   }
 
   // Check Mark
   if (e.target.classList.contains('complete-btn')) {
     const todo = e.target.parentElement;
-    todo.classList.toggle('completed');
+    const targetTodo = getLocalTodos().find(
+      (localTodo) => localTodo.id === todo.dataset.id
+    );
+    updateLocalTodo(todo.dataset.id, {
+      text: targetTodo.text,
+      completed: !targetTodo.completed,
+    });
+    checkTodoUI(todo);
   }
+}
+
+function deleteTodoUI(todoEl) {
+  // Animation
+  todoEl.classList.add('fall');
+  todoEl.addEventListener('transitionend', () => {
+    todoEl.remove();
+  });
+}
+
+function checkTodoUI(todoEl) {
+  todoEl.classList.toggle('completed');
 }
 
 function filterTodo(e) {
@@ -79,5 +112,53 @@ function filterTodo(e) {
       default:
         break;
     }
+  });
+}
+
+function saveLocalTodo(todo) {
+  const todos = getLocalTodos();
+  todos.push(todo);
+  setLocalTodos(todos);
+}
+
+function deleteLocalTodo(id) {
+  const todos = getLocalTodos();
+  setLocalTodos(todos.filter((todo) => todo.id !== id));
+}
+
+function updateLocalTodo(id, todo) {
+  const localTodos = getLocalTodos();
+
+  setLocalTodos(
+    localTodos.map((localTodo) => {
+      return localTodo.id === id ? { id, ...todo } : localTodo;
+    })
+  );
+}
+
+function getLocalTodos() {
+  const todos = !localStorage.getItem('todos')
+    ? []
+    : JSON.parse(localStorage.getItem('todos'));
+  return todos;
+}
+
+function setLocalTodos(todos) {
+  localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function initApp() {
+  const todos = getLocalTodos();
+
+  todos.forEach((todo) => {
+    addTodoUI(todo);
   });
 }
