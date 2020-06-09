@@ -81,6 +81,10 @@ svg {
   transition: all 0.3s ease;
 }
 
+.mute.active {
+  background: rgb(190, 190, 190);
+}
+
 .pad {
   transition: all 0.5s ease;
 }
@@ -98,4 +102,13 @@ svg {
 select {
   padding: 1rem;
   font-size: 1rem;
+}
+
+@keyframes playTrack {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.2);
+  }
 }
