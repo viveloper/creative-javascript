@@ -10,6 +10,7 @@ class DrumKit {
     this.hihatAudio = document.querySelector('.hihat-sound');
     this.selects = document.querySelectorAll('select');
     this.muteBtns = document.querySelectorAll('.mute');
+    this.tempoSlider = document.querySelector('.tempo-slider');
     this.index = 0;
     this.bpm = 150;
     this.playId = null;
@@ -28,6 +29,8 @@ class DrumKit {
     this.muteBtns.forEach((muteBtn) => {
       muteBtn.addEventListener('click', this.mute.bind(this));
     });
+    this.tempoSlider.addEventListener('input', this.changeTempo.bind(this));
+    this.tempoSlider.addEventListener('change', this.updateTempo.bind(this));
   }
   activePad() {
     this.classList.toggle('active');
@@ -64,11 +67,21 @@ class DrumKit {
         break;
     }
   }
+  changeTempo(e) {
+    const tempoText = document.querySelector('.tempo-number');
+    this.bpm = e.target.value;
+    tempoText.innerText = this.bpm;
+  }
+  updateTempo(e) {
+    clearInterval(this.playId);
+    this.playId = null;
+    this.start();
+  }
   repeat() {
     const step = this.index % 8;
     const activeBars = document.querySelectorAll(`.b${step}`);
     activeBars.forEach((activeBar) => {
-      activeBar.style.animation = 'playTrack 0.3s alternate ease-in-out 2';
+      activeBar.style.animation = 'playTrack 0.3s reverse ease-in-out';
       if (activeBar.classList.contains('active')) {
         if (activeBar.classList.contains('kick-pad')) {
           this.kickAudio.currentTime = 0;
@@ -101,5 +114,3 @@ class DrumKit {
 }
 
 const drumKit = new DrumKit();
-
-// drumKit.playBtn.addEventListener('click', () => drumKit.start());
